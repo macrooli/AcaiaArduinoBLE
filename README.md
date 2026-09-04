@@ -80,8 +80,8 @@ bootloader and partition files are **not** uploaded through the web page.
 ### Build an OTA-uploadable binary
 
 The GitHub Actions **Build OTA firmware** workflow creates an artifact named
-`shotStopper-ota-firmware`. Download it and use the contained
-`shotStopper-ota.bin` file. This is the application image expected by the web
+`shotStopper-ota-esp32-s3` and `shotStopper-ota-esp32-c3`. Download the
+artifact matching the board's ESP32 chip; its contained `.bin` file. This is the application image expected by the web
 updater. Do not select a bootloader, partitions file, or a merged/combined
 flash image.
 
@@ -103,7 +103,7 @@ Arduino build output's `shotStopper.ino.bin` is the file to upload.
    address once connected. If it remains `disconnected`, check the network
    details and ensure the network is 2.4 GHz.
 5. With your computer/phone on the same network, open `http://<IP address>/`.
-   Choose the `shotStopper-ota.bin` file and select **Upload**. Keep power
+   Choose the matching OTA `.bin` file and select **Upload**. Keep power
    connected until the confirmation page appears and the board restarts.
 
 The updater has no login and uses HTTP, so use it only on a network you trust.
