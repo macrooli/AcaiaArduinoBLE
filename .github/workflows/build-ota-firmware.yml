@@ -27,7 +27,7 @@ jobs:
           arduino-cli lib install ArduinoBLE
       - name: Compile OTA application image
         run: |
-          arduino-cli compile --fqbn esp32:esp32:arduino_nano_esp32 \
+          arduino-cli compile --fqbn esp32:esp32:arduino_nano_nora \
             --output-dir build/ota examples/shotStopper
           cp build/ota/shotStopper.ino.bin build/ota/shotStopper-ota.bin
       - name: Upload OTA application image
