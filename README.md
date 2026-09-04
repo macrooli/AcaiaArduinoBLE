@@ -66,6 +66,50 @@ The following variables at the top of the shotStopper.ino file can be configured
 `TIMER_ONLY`
 * false by default. disables brew-by-weight functionality and enables only automatic timer and tare
 
+
+`BOOKOO_COMBINED_TARE_TIMER`
+* false by default. Set to true only for Bookoo scales to use their combined tare-and-start-timer command.
+
+## Web firmware update (OTA)
+
+The ShotStopper example includes a small Wi-Fi web updater. It updates only the
+application firmware, so it is intended for boards which have already been
+flashed once by USB with an OTA-capable ESP32 partition layout. The bundled
+bootloader and partition files are **not** uploaded through the web page.
+
+### Build an OTA-uploadable binary
+
+The GitHub Actions **Build OTA firmware** workflow creates an artifact named
+`shotStopper-ota-esp32-s3` and `shotStopper-ota-esp32-c3`. Download the
+artifact matching the board's ESP32 chip; its contained `.bin` file. This is the application image expected by the web
+updater. Do not select a bootloader, partitions file, or a merged/combined
+flash image.
+
+For a local build, compile `examples/shotStopper/shotStopper.ino` for the same
+ESP32 board and partition scheme as the board's original USB installation. The
+Arduino build output's `shotStopper.ino.bin` is the file to upload.
+
+### Enter update mode and upload
+
+1. Connect a BLE client (for example, nRF Connect or LightBlue) to the device
+   named `shotStopper`.
+2. In service `0x0FFE`, write your 2.4 GHz Wi-Fi network name as UTF-8 text to
+   characteristic `0xFF22`, then write its password as UTF-8 text to
+   `0xFF23`. Both fields are limited to 32 bytes and are stored in the device's
+   EEPROM.
+3. Write byte `0x01` to characteristic `0xFF21` to request update mode. The
+   ShotStopper disconnects from the scale while it connects to Wi-Fi.
+4. Read or subscribe to characteristic `0xFF24`; it reports the assigned IP
+   address once connected. If it remains `disconnected`, check the network
+   details and ensure the network is 2.4 GHz.
+5. With your computer/phone on the same network, open `http://<IP address>/`.
+   Choose the matching OTA `.bin` file and select **Upload**. Keep power
+   connected until the confirmation page appears and the board restarts.
+
+The updater has no login and uses HTTP, so use it only on a network you trust.
+To leave update mode without installing firmware, write byte `0x00` to
+`0xFF21`.
+
 ## Demo
 
 You can find a demo on Youtube:

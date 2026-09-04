@@ -53,6 +53,10 @@
 
 #define TIMER_ONLY false      // disables brew by weight functionality, and only automates the timer/tare
 
+// Set to true only for Bookoo scales. It combines tare and timer start into
+// one scale command, which can make shot start more reliable on that protocol.
+#define BOOKOO_COMBINED_TARE_TIMER false
+
 // Board Hardware 
 #ifdef ARDUINO_ESP32S3_DEV
   #define LED_RED     46
@@ -531,9 +535,9 @@ void loop() {
     buttonLatched = true;
     Serial.println("Button Latched");
     digitalWrite(OUT,HIGH); Serial.println("wrote high");
-    // Get the scale to beep to inform user.
+    // Give an audible acknowledgement that the brew switch has latched.
     if(autoTare){
-      scale.tare();
+      scale.beep();
     }
   }
 
@@ -615,10 +619,14 @@ void setBrewingState(bool brewing){
     shot.start_timestamp_s = seconds_f();
     shot.shotTimer = 0;
     shot.datapoints = 0;
-    scale.resetTimer();
-    scale.startTimer();
-    if(autoTare){
-      scale.tare();
+    if (BOOKOO_COMBINED_TARE_TIMER && autoTare) {
+      scale.tareStartTimer();
+    } else {
+      scale.resetTimer();
+      scale.startTimer();
+      if(autoTare){
+        scale.tare();
+      }
     }
     Serial.println("Weight Timer End");
   }else{

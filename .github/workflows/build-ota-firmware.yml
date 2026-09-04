@@ -1,0 +1,50 @@
+name: Build OTA firmware
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'AcaiaArduinoBLE.cpp'
+      - 'AcaiaArduinoBLE.h'
+      - 'examples/shotStopper/**'
+      - '.github/workflows/build-ota-firmware.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-ota-image:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: ESP32-S3
+            fqbn: esp32:esp32:esp32s3
+            slug: esp32-s3
+          - name: ESP32-C3
+            fqbn: esp32:esp32:esp32c3
+            slug: esp32-c3
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+      - name: Install ESP32 platform and ArduinoBLE
+        run: |
+          arduino-cli config init
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32
+          arduino-cli lib install ArduinoBLE
+      - name: Compile OTA application image
+        run: |
+          arduino-cli compile --fqbn ${{ matrix.fqbn }} \
+            --output-dir build/ota/${{ matrix.slug }} examples/shotStopper
+          cp build/ota/${{ matrix.slug }}/shotStopper.ino.bin \
+            build/ota/shotStopper-ota-${{ matrix.slug }}.bin
+      - name: Upload OTA application image
+        uses: actions/upload-artifact@v4
+        with:
+          name: shotStopper-ota-${{ matrix.slug }}
+          path: build/ota/shotStopper-ota-${{ matrix.slug }}.bin
+          if-no-files-found: error
