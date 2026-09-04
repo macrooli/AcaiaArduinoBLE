@@ -1,0 +1,38 @@
+name: Build OTA firmware
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'AcaiaArduinoBLE.cpp'
+      - 'AcaiaArduinoBLE.h'
+      - 'examples/shotStopper/**'
+      - '.github/workflows/build-ota-firmware.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-nano-esp32:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+      - name: Install ESP32 platform and ArduinoBLE
+        run: |
+          arduino-cli config init
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32
+          arduino-cli lib install ArduinoBLE
+      - name: Compile OTA application image
+        run: |
+          arduino-cli compile --fqbn esp32:esp32:arduino_nano_esp32 \
+            --output-dir build/ota examples/shotStopper
+          cp build/ota/shotStopper.ino.bin build/ota/shotStopper-ota.bin
+      - name: Upload OTA application image
+        uses: actions/upload-artifact@v4
+        with:
+          name: shotStopper-ota-firmware
+          path: build/ota/shotStopper-ota.bin
+          if-no-files-found: error
